@@ -1,0 +1,30 @@
+[color]
+	diff = auto
+	status = auto
+	branch = auto
+	ui = auto
+[alias]
+	ci = commit
+	co = checkout
+	br = branch
+	st = status
+	ignored = !git ls-files -v | grep "^[[:lower:]]"
+	hide = update-index --assume-unchanged
+  	unhide = update-index --no-assume-unchanged
+  	unhide-all = update-index --really-refresh
+	tree = log --graph --oneline --all
+[core]
+	autocrlf = input
+	excludesfile = ~/.gitignore_global
+[difftool "sourcetree"]
+	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
+	path =
+[mergetool "sourcetree"]
+	cmd = /Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
+	trustExitCode = true
+[commit]
+	template = ~/.stCommitMsg
+[credential]
+	helper = osxkeychain
+[init]
+	defaultBranch = main
