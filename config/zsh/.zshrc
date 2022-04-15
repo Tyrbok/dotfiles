@@ -138,6 +138,7 @@ export EDITOR='vim'
 
 export PATH="$PATH:$HOME/.dotfiles/bin"
 export PATH="$PATH:$HOME/install/bin"
+export PATH="$PATH:$HOME/install/opt/flutter/bin"
 
 # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
 export PATH="$PATH:$HOME/.rvm/bin"
