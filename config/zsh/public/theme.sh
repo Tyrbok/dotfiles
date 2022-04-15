@@ -12,3 +12,5 @@ function git_prompt_info {
 
 export PROMPT='%(?:%F{112}:%F{red})╭─ %F{178}%~%{%f%}$(git_prompt_info)%f
 %(?:%F{112}:%F{red})╰─➜ '
+
+export GREP_COLOR='1;42m'
