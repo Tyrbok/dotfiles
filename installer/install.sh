@@ -58,7 +58,7 @@ if [ -d "$PATH_DOTFILES" ]; then
   rnd=$(echo $RANDOM | md5sum | head -c 20; echo;)
   copy_of_dotfile="${PATH_DOTFILES}_$rnd"
   print -P "$fg[red] - $copy_of_dotfile $reset_color"
-#  mv $PATH_DOTFILES $copy_of_dotfile
+  mv $PATH_DOTFILES $copy_of_dotfile
   echo
 fi
 
