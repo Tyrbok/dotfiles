@@ -4,7 +4,15 @@ function git_prompt_info {
   inside_git_repo="$(git rev-parse --is-inside-work-tree 2>/dev/null)"
   if [ "$inside_git_repo" ]; then
     current_branch=$(git branch --show-current)
-    print -P " on %{%F{151}%}$current_branch%{%f%}"
+
+
+    if [[ $(git diff --stat) != '' ]]; then
+      _status='%F{red} [!] %{%f%}'
+    else
+      _status=''
+    fi
+
+    print -P " on %{%F{151}%}$current_branch%{%f%}$_status"
   else
     echo ""
   fi
