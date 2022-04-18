@@ -146,4 +146,4 @@ export PATH="$PATH":"$HOME/.pub-cache/bin"
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-export NAVI_PATH="~/.dotfiles/shell/navi"
+export NAVI_PATH=/Users/jesus/.dotfiles/config/navi

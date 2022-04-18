@@ -5,6 +5,9 @@ brew services start <service>
 
 $ service: brew services list | grep none | awk '{print $1}'
 
+# List all services
+brew services list
+
 # Stop all services
 brew services stop --all
 
