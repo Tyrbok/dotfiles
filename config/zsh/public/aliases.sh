@@ -18,7 +18,7 @@ alias gb="git branch"
 alias __gt="git for-each-ref --sort=-creatordate --format '%(refname) %(creatordate)' refs/tags | cut -d' ' -f1 | sed 's/refs\/tags\///g'"
 function gt {
   re='^[0-9]+$'
-  if ! [[ $1 =~ $re ]] ; then
+  if ! [[ $1 =~ $re ]]; then
     __gt
   else
     __gt | head -n $1
@@ -26,7 +26,7 @@ function gt {
 }
 
 alias isodate="date +%Y-%m-%dT%H:%M:%S%z"
-alias wp="ruby -I ~/projects/personal/wp-docker/lib ˜/projects/personal/wp-docker/bin/wp-docker"
+alias wp="ruby -I ~/projects/personal/wp-docker/lib ~/projects/personal/wp-docker/bin/wp-docker"
 
 alias e="idea -e"
 
@@ -37,4 +37,4 @@ alias st="stree ./"
 # alias clean_bbt_android="cd $HOME/projects/bitban; find . -name 'gradlew' | sed 's/gradlew//' | xargs -I % sh -c 'echo % ; echo "-------------" ; cd "%"; ./gradlew clean; echo; echo '"
 # export FZF_DEFAULT_OPTS="--preview 'bat --style=numbers --color=always --line-range :500 {}'"
 alias pcd='cd $(tree -f -i -d -L 4 ~/projects | FZF_DEFAULT_OPTS="" fzf)'
-
+alias poi='idea $(find ~/projects -name '.idea' -maxdepth 5 -type d | FZF_DEFAULT_OPTS="" fzf)/../'
