@@ -1,0 +1,51 @@
+#!/usr/bin/env python
+import argparse
+import glob
+import os
+from termcolor import colored
+
+from distlib.compat import raw_input
+
+
+def confirm():
+    answer = ""
+    while answer not in ["y", "n"]:
+        answer = raw_input("\nContinue [Y/N]? ").lower()
+    return answer == "y"
+
+
+def get_new_file_name(file_name):
+    return file_name.lower().replace(" ", "_").replace("(", "_").replace(")", "_").replace("__", "_").replace("._", ".")
+
+
+def rename_files(files):
+    for f in files:
+        new_file_name = get_new_file_name(f)
+        if not f == new_file_name:
+            os.rename(f, new_file_name)
+            print(" " + colored(f + " -> " + new_file_name, 'green'))
+
+
+def show_files(files, verbose: bool):
+    for f in files:
+        new_file_name = get_new_file_name(f)
+        color = 'green' if new_file_name == f else 'yellow'
+        if not new_file_name == f or verbose is True:
+            print(" " + colored(f + " -> " + new_file_name, color))
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Normalize file names')
+    parser.add_argument('file', nargs='+', help='file or pattern. Example *.svg')
+    parser.add_argument('--verbose', '-v', action='count', default=0)
+
+    args = parser.parse_args()
+
+    file_names = args.file
+    show_files(file_names, args.verbose > 0)
+    if confirm():
+        rename_files(file_names)
+        print("\n🎉 " + colored('Done', 'white'))
+
+    else:
+        print("\n👋 Bye")
