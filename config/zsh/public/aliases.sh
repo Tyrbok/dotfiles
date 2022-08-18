@@ -14,7 +14,8 @@ alias gf="git fetch --all -p"
 alias gps="git push"
 alias gpsf="git push --force"
 alias gpl="git pull --rebase --autostash"
-alias gb="git branch"
+alias gb="git branch -a | grep -v remotes | fzf | xargs -I{} bash -c 'git checkout {}'"
+alias gbl="git branch"
 alias __gt="git for-each-ref --sort=-creatordate --format '%(refname) %(creatordate)' refs/tags | cut -d' ' -f1 | sed 's/refs\/tags\///g'"
 function gt {
   re='^[0-9]+$'
@@ -24,6 +25,7 @@ function gt {
     __gt | head -n $1
   fi
 }
+
 
 alias isodate="date +%Y-%m-%dT%H:%M:%S%z"
 alias wp="ruby -I ~/projects/personal/wp-docker/lib ~/projects/personal/wp-docker/bin/wp-docker"
