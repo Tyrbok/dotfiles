@@ -10,7 +10,6 @@ function __bbt_git_get_title() {
 }
 
 function bbt-git-tasks() {
-
   inside_git_repo="$(git rev-parse --is-inside-work-tree 2>/dev/null)"
 
   if [ -z "$1" ]; then
@@ -78,8 +77,9 @@ if [ "$inside_git_repo" ]; then
   matches_url=$(git log $origin...$dest | grep -e "${__bbt_redmine_domain}/issues/\(\d\+\)" -o | cut -d'/' -f3)
   matches_ids=$(git log $origin...$dest | grep -e '\#\(\d\+\)' -o)
   ids=$(echo $matches_url\\n$matches_ids)
+  unique_ids=$(echo $ids | sort | uniq )
 
-  report=$(echo $ids | while read id; do
+  report=$(echo $unique_ids | while read id; do
     echo "${__bbt_redmine_base_url}issues/$id | "$(__bbt_git_get_title $id)
   done)
   echo $report
