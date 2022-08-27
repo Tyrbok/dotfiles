@@ -5,13 +5,13 @@
 Using wget:
 
 ```bash
-bash <(wget -qO- https://raw.githubusercontent.com/CodelyTV/dotly/HEAD/installer)
+zsh <(wget -qO- https://raw.githubusercontent.com/Tyrbok/dotfiles/HEAD/installer/install.sh)
 ```
 
 Or using curl:
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/CodelyTV/dotly/HEAD/installer)
+zsh <(curl -s https://raw.githubusercontent.com/Tyrbok/dotfiles/HEAD/installer/install.sh)
 ```
 
 ## Contributing
