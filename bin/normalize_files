@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import argparse
 import os
-from termcolor import colored
 
 from distlib.compat import raw_input
+from termcolor import colored
 
 
 def confirm():

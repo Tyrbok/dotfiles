@@ -2409,6 +2409,19 @@
 	<true/>
 	<key>ShowPaneTitles</key>
 	<false/>
+	<key>Snippets</key>
+	<array>
+		<dict>
+			<key>guid</key>
+			<string>5640ECFD-D100-47C8-A00B-1A449ED81B7E</string>
+			<key>title</key>
+			<string>ation to a top-level map.  support for top level list will be removed in a future version.  run: `</string>
+			<key>value</key>
+			<string>ation to a top-level map.  support for top level list will be removed in a future version.  run: `</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+	</array>
 	<key>SoundForEsc</key>
 	<false/>
 	<key>TabStyleWithAutomaticOption</key>

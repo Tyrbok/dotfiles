@@ -1,0 +1,120 @@
+#! /usr/bin/env python
+import fnmatch
+import getopt
+import os
+import sys
+import time
+from datetime import datetime
+from email.utils import parsedate
+
+from tabulate import tabulate
+
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
+def get_last_commit_info(branch_name, days):
+    last_commit_command = "git log -n1 --pretty=format:'%ad | %aE' " + branch_name + " --date=rfc2822"
+    last_commit_output_stream = os.popen(last_commit_command)
+    last_commit = last_commit_output_stream.read()
+    last_commit_date = last_commit.split("|")[0].strip()
+    last_commit_author = last_commit.split("|")[1].strip()
+    last_commit_output_stream.close()
+    t = parsedate(last_commit_date)
+    date_time_obj = datetime.fromtimestamp(time.mktime(t))
+    time_between_insertion = datetime.now() - date_time_obj
+    is_obsolete = False
+    if time_between_insertion.days > days:
+        is_obsolete = True
+    return date_time_obj, is_obsolete, last_commit_author
+
+
+def get_repo_info(repo_path, days=30, only_errors=True):
+    ret = []
+    os.chdir(repo_path)
+    remotes_command = 'git br -a | grep remotes | grep -v HEAD'
+    output_stream = os.popen(remotes_command)
+    data = output_stream.read()
+    output_stream.close()
+    for line in data.split('\n'):
+        if line == "":
+            continue
+        remote_branch_name = line.strip()
+        last_commit_date, is_obsolete, author = get_last_commit_info(remote_branch_name, days)
+        branch_name = line.strip().split('/', 1)[1].split('/', 1)[1]
+        date_formatted = last_commit_date.strftime("%m/%d/%Y")
+        icon = bcolors.FAIL + "[✗]" + bcolors.ENDC if is_obsolete else bcolors.OKGREEN + "[✓]" + bcolors.ENDC
+        if is_obsolete or not only_errors:
+            ret.append([icon, author, date_formatted, branch_name])
+    return ret
+
+
+def print_repo_result(name, info):
+    if len(info) == 0:
+        return
+
+    print(bcolors.HEADER + name + bcolors.ENDC)
+    print(tabulate(info, tablefmt="plain"))
+    print()
+
+
+if __name__ == '__main__':
+    try:
+        opts, args = getopt.getopt(sys.argv[1:],
+                                   "haf:e:i:d:",
+                                   ["help", "all", "from=", "exclude-path=", "include-path=", "days="])
+    except getopt.GetoptError as err:
+        print(err)
+        sys.exit(1)
+
+    only_errors = True
+    checkout_branches = False
+    from_path = None
+    excluded_paths = []
+    include_paths = []
+    days = 30
+    for o, a in opts:
+        if o == "--all":
+            only_errors = False
+        elif o == "--from":
+            from_path = a
+        elif o == "--exclude-path":
+            excluded_paths.append(a)
+        elif o == "--include-path":
+            include_paths.append(a)
+        elif o == "--days":
+            days = int(a)
+        else:
+            assert False, "unhandled option " + str(o)
+
+    repos = []
+    print_repos = []
+    if from_path is None:
+        repos.append(".")
+    else:
+        for root, dirs, _ in os.walk(os.path.abspath(from_path), topdown=False):
+            if ".git" in dirs:
+                repos.append(root)
+
+    if len(include_paths) == 0:
+        print_repos = repos
+    else:
+        for e in include_paths:
+            print_repos = print_repos + fnmatch.filter(repos, e)
+
+    for e in excluded_paths:
+        excluded_repos = set(fnmatch.filter(print_repos, e))
+        print_repos = [x for x in print_repos if x not in excluded_repos]
+
+    for root in print_repos:
+        info = get_repo_info(root, only_errors=only_errors, days=days)
+        print_repo_result(root, info)
