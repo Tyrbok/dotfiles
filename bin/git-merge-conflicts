@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+# set -euo pipefail
+
+if [ "$1" = "" ]; then
+  echo "Usage: git check-conflicts <local_branch_name>"
+  echo "Available branches"
+  git branch
+  exit 1
+fi
+
+branches=$(git branch | grep "$1" | xargs)
+
+if [ "$branches" != "$1" ]; then
+  echo "Branch $1 not found x${branches}x"
+  echo "Available branches"
+  git branch
+  exit 1
+fi
+
+git merge --no-commit --no-ff "$1"
+
+if [ "$?" = "0" ]; then
+  echo "🎉 No conflicts found."
+else
+  echo "❗️conflicts found."
+fi
+
+git merge --abort

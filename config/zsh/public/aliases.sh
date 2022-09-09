@@ -18,7 +18,8 @@ alias st="stree ./"
 
 # alias clean_bbt_android="cd $HOME/projects/bitban; find . -name 'gradlew' | sed 's/gradlew//' | xargs -I % sh -c 'echo % ; echo "-------------" ; cd "%"; ./gradlew clean; echo; echo '"
 # export FZF_DEFAULT_OPTS="--preview 'bat --style=numbers --color=always --line-range :500 {}'"
-alias pcd='cd $(tree -f -i -d -L 4 ~/projects | FZF_DEFAULT_OPTS="" fzf)'
+#alias pcd='cd $(tree -f -i -d -L 4 ~/projects | FZF_DEFAULT_OPTS="" fzf)'
+alias pcd='cd $(tree -a -L 5 -f -d -i ~/projects | grep -e "git$" | rev | cut -d"/" -f2- | rev | FZF_DEFAULT_OPTS="" fzf)'
 alias poi='idea $(find ~/projects -name '.idea' -maxdepth 5 -type d | FZF_DEFAULT_OPTS="" fzf)/../'
 
 alias ff="fzf --preview 'bat --style=numbers --color=always --line-range :500 {}'"

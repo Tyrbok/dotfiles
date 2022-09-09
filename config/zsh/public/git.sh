@@ -12,6 +12,8 @@ alias gba="git branch -a | grep -v HEAD | grep remotes | fzf | cut -d'/' -f3- | 
 alias glt="git log --oneline --graph --decorate --all"
 alias gl="git log --oneline --decorate --all"
 alias glf="git log --oneline --decorate --first-parent"
+alias gmc="git branch -a | grep -v remotes | fzf | xargs -I{} bash -c 'git merge-conflicts {}'"
+alias gca='git commit -a'
 
 gt() {
   _command="git for-each-ref --sort=-creatordate --format '%(refname) %(creatordate)' refs/tags | cut -d' ' -f1 | sed 's/refs\/tags\///g'"

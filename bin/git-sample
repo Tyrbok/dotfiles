@@ -1,0 +1,140 @@
+#!/usr/bin/env python
+import getopt
+import os
+import sys
+import time
+
+import lorem
+
+
+def command_commit(index, commit_type):
+    file_name = "file_" + str(index) + ".txt"
+    p = lorem.paragraph()
+    f = open(file_name, mode='a')
+    f.write(p)
+    f.close()
+    os.system("git add .")
+    os.system("git ci -m'%s: %s'" % (commit_type, file_name))
+    time.sleep(0.2)
+
+
+def command_move(index, branch):
+    os.system("git co " + branch)
+
+
+def command_branch(index, branch):
+    os.system("git co -b " + branch)
+
+
+def process_command(index, command):
+    commands = {
+        "c": command_commit,
+        "b": command_branch,
+        "m": command_move,
+    }
+    if command.split(":")[0] in commands:
+        if len(command.split(":")) > 2:
+            index = command.split(":")[2]
+        commands[command.split(":")[0]](index, command.split(":")[1])
+
+
+if __name__ == "__main__":
+    name = "repo"
+    items_with_conflicts = """
+c:feat:1
+c:fix
+c:fix
+c:feat
+
+b:branch_1
+c:wip:1
+c:wip:1
+c:wip:1
+c:wip
+c:wip
+c:wip
+
+m:main
+c:feat:1
+c:feat
+c:fix:1
+c:feat
+""".split("\n")
+
+    items_with_no_conflicts = """
+c:feat
+c:fix
+c:fix
+c:feat
+
+b:branch_1
+c:wip
+c:wip
+c:wip
+c:wip
+c:wip
+c:wip
+
+m:main
+c:feat
+c:feat
+c:fix
+c:feat
+""".split("\n")
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], ":b:c", ["nc", "bare", "name="])
+    except getopt.GetoptError as err:
+        print(err)
+        sys.exit(1)
+
+    items = items_with_conflicts
+    use_bare = False
+    checkout_branches = False
+    for o, a in opts:
+        if o in ("-b", "--bare"):
+            use_bare = True
+        elif o in ("-c", "checkout"):
+            checkout_branches = True
+        elif o == "--nc":
+            items = items_with_no_conflicts
+        elif o == "--name":
+            name = a
+        else:
+            assert False, "unhandled option " + str(o)
+
+    if len(args) > 0:
+        print("Invalid args: " + str(args))
+        sys.exit(1)
+
+    if use_bare:
+        os.mkdir(name + "_bare")
+        os.chdir(name + "_bare")
+        os.system('git init --bare --initial-branch=main')
+        os.chdir("..")
+        time.sleep(1)
+        os.system('git clone "%s" %s' % (name + "_bare", name + "_1"))
+        os.chdir(name + "_1")
+    else:
+        os.mkdir(name)
+        os.chdir(name)
+        os.system("git init --initial-branch=main")
+
+    for i in range(0, len(items)):
+        process_command(i, items[i])
+
+    if use_bare:
+        check_out_all_branches = "git branch -a | " \
+                                 "grep -v HEAD | perl -ne 'chomp($_); s|^\*?\s*||; if (m|(.+)/(.+)| && not $d{$2}) " \
+                                 "{print qq(git branch --track $2 $1/$2\n)} else {$d{$_}=1}' | csh -xfs"
+        os.system("git push --all origin")
+        os.chdir("..")
+        os.system('git clone "%s" %s' % (name + "_bare", name + "_2"))
+        os.chdir(name + "_2")
+        if checkout_branches:
+            os.system(check_out_all_branches)
+        os.chdir("..")
+        os.system('git clone "%s" %s' % (name + "_bare", name + "_3"))
+        os.chdir(name + "_3")
+        if checkout_branches:
+            os.system(check_out_all_branches)
