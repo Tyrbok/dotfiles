@@ -9,6 +9,14 @@ if [ "$1" = "" ]; then
   exit 1
 fi
 
+if [ -z "$(git status --porcelain)" ]; then
+  echo "Checking..."
+else
+  echo "Working-copy is not clean"
+  git status --porcelain
+  exit 1
+fi
+
 branches=$(git branch | grep "$1" | xargs)
 
 if [ "$branches" != "$1" ]; then

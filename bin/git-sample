@@ -1,10 +1,20 @@
 #!/usr/bin/env python
 import getopt
 import os
+import select
 import sys
 import time
 
 import lorem
+
+
+def help_usage(exit_value=0):
+    print("USAGE: git-sample [options]")
+    print("  --with-no-conflicts / --with-conflicts")
+    print("  --bare")
+    print("  --print")
+    print("  --stdin")
+    exit(exit_value)
 
 
 def command_commit(index, commit_type):
@@ -83,29 +93,55 @@ c:feat
 """.split("\n")
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], ":b:c", ["nc", "bare", "name="])
+        opts, args = getopt.getopt(sys.argv[1:], ":b:c",
+                                   ["with-no-conflicts", "with-conflicts", "bare", "name=", "print", "stdin", "help"])
     except getopt.GetoptError as err:
         print(err)
         sys.exit(1)
 
-    items = items_with_conflicts
+    items = None
     use_bare = False
+    print_items = False
     checkout_branches = False
+    wait_items = False
+
     for o, a in opts:
         if o in ("-b", "--bare"):
             use_bare = True
         elif o in ("-c", "checkout"):
             checkout_branches = True
-        elif o == "--nc":
+        elif o == "--with-no-conflicts":
             items = items_with_no_conflicts
+        elif o == "--with-conflicts":
+            items = items_with_conflicts
         elif o == "--name":
             name = a
+        elif o == "--help":
+            help_usage(1)
+        elif o == "--print":
+            print_items = True
+        elif o == "--stdin":
+            wait_items = True
         else:
             assert False, "unhandled option " + str(o)
+
+    if wait_items or select.select([sys.stdin, ], [], [], 0.0)[0]:
+        items = ""
+        for line in sys.stdin:
+            items = items + line
+        items = items.split("\n")
+
+    if items is None:
+        print("No data")
+        help_usage(1)
 
     if len(args) > 0:
         print("Invalid args: " + str(args))
         sys.exit(1)
+
+    if print_items:
+        print('\n'.join(items))
+        exit(0)
 
     if use_bare:
         os.mkdir(name + "_bare")
