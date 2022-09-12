@@ -1,0 +1,79 @@
+{:profiles
+ {:Default
+  {:alone              500
+   :default            true
+   :delay              200
+   :held               500
+   :sim                200
+   :simlayer-threshold 520}}
+
+ ;; ------------ SimLayers ------------
+
+   :simlayers {
+      ;; :shift-mode {:key :left_shift}
+      ;; :caps-mode {:key :caps_lock}
+
+      :open-mode {:key :o}
+   }
+
+ ;; ------------ Layers ------------o
+
+ :layers {
+  ;;  :tab-mode {:key     :tab}
+  ;;  :caps_mode {:key :caps_lock :alone {:key :caps_lock}}
+    
+ }
+
+
+ :main
+ [;; ------------ Remaps ------------
+    ;; {:des   "[Remap] Replace CapsLock with Left Control" :rules [[:##caps_lock :left_control nil {:alone :caps_lock}]]}
+    ;; {:des   "[Remap] Replace CapsLock with Left Control" :rules [[:##caps_lock :left_control]]}
+    ;; {:des   "[Remap] Replace Left Control with fn" :rules [[:##left_control :fn]]}
+    ;; {:des   "[Remap] Replace CapsLock with Left Control" :rules [[:##caps_lock :left_control] [:!CI :caps_lock]]}
+
+ ;; ------------ Launchers ------------
+
+   {:des "[uuid] Generate UUID" :rules [[:!CSu ["(uuidgen | tr '[:upper:]' '[:lower:]') | pbcopy" :!Cv]]]}
+   {:des "lauch numi" :rules [[:!Cpage_up "open /Applications/Numi.app"]]}
+   {:des "[Remap] Replace 'page up' to mute meet chrome" :rules [[:page_up :!OS1]]}
+
+
+  ;;  {:des "xxxx" :rules [:shift-mode [:left_control :caps_lock]]}
+  ;;  {:des "xxxx" :rules [:shift-mode [:o :caps_lock]]}
+
+
+   {:des   "Open mode"
+    :rules [
+      :open-mode [:t "open -a 'iTerm.app'"]
+      ;; :open-mode [:e "open -a 'Evernote.app'"]
+      :open-mode [:e [:!CTe :escape :!CO1 :!Cj]]oww
+      ]
+    }
+ ;; ------------ Tests ------------aa
+
+
+ ;; ------------ Cheatsheet ------------
+ ;; !  stand for mandatory
+ ;; #  stand for optional
+ ;; !! stand for mandatory command + control + optional + shift (hyper)
+ ;; ## stand for optional any
+ ;; C T O S for left command control option shift
+ ;; Q W E R for right command control option shift
+ ;; F for fn
+ ;; need to prefix C T O S F Q W E R with ! or #
+   ]
+
+:cheatsheet
+ {:!Ca        "command a"
+  :!Ta        "control a"
+  :!Oa        "option a"
+  :!Sa        "shift a"
+  :#Sa        "shift a"
+  :!CTOa      "command control option a"
+  :!Cspacebar "command space"
+  :!Fa        "fn a"
+  :##a        "keycode a optional any"
+  :!!a        "mandatory hyper (control command option shift) a "
+  :template   {:des   "Description of your action"
+               :rules [[:!Cspacebar "command to execute"]]}}}

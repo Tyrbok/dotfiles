@@ -8,6 +8,7 @@ PATH_ZSH_DOTFILES=$PWD/.dotfiles/config/zsh
 PATH_ITERM_DOTFILES=$PWD/.dotfiles/config/iterm2
 PATH_GIT_DOTFILES=$PWD/.dotfiles/config/git
 PATH_INSTALL_TEMPLATES=$PWD/.dotfiles/installer/_templates
+PATH_KARABINER_DOTFILES=$PWD/.dotfiles/config/karabiner
 PATH_INSTALL_STEPS=$PWD/.dotfiles/installer/_steps
 
 function _link() {
