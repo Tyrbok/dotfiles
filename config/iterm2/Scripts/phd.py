@@ -16,7 +16,7 @@ async def main(connection):
         await splited.async_activate()
         
         await session.async_send_text('cd /Volumes/Seagate\ Bac/backups/My_Passport_20171225/backup_iomega/cdteb/__pending\n')
-        await session.async_send_text('../bin/phd.py add -i\n')
+        await session.async_send_text('../bin/phd.py add -d\n')
 
         await splited.async_send_text('cd /Volumes/Seagate\ Bac/backups/My_Passport_20171225/backup_iomega/cdteb/__pending\n')
         await splited.async_send_text('open ./\n')
