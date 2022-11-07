@@ -1,31 +1,59 @@
 #!/usr/bin/env bash
 
 function usage {
-       printf "Usage:\n"
-       printf " -h                        Display this help message.\n"
-       printf " -d <site>                 Download site.\n"
-       printf " -u <site>                 Upload site.\n"
-       printf " -l                        List sites.\n"
-       exit 0
+  printf "Usage:\n"
+  printf " -h                        Display this help message.\n"
+  printf " -d                        Download site.\n"
+  printf " -u                        Upload site.\n"
+  printf " -l                        List sites.\n"
+  printf " -i                        Init project.\n"
+  exit 0
 }
 
-while getopts :u:d:lh opt; do
+CONFIG_FILE_NAME=".sisy.json"
+
+function __init {
+  if [ -f "$CONFIG_FILE_NAME" ]; then
+    echo "$CONFIG_FILE_NAME exists."
+    exit 1
+  fi
+
+  echo "Enter site name:"
+  read -r new_site_name
+  echo '{"site":"'$new_site_name'"}' | jq >$CONFIG_FILE_NAME
+  echo "$CONFIG_FILE_NAME created."
+}
+
+while getopts :lhiud opt; do
   case ${opt} in
   h)
     usage
     ;;
   l)
-    ssh onepointzero@onepointzero.org ls /home/onepointzero/devel.onepointzero.org/sites | cut -c1-20
+    echo "Available sites:"
+    ssh onepointzero@onepointzero.org ls /home/onepointzero/devel.onepointzero.org/sites | \
+      cut -c1-20 | xargs -I{} echo "* {}"
+    ;;
+  i)
+    __init
     ;;
   u)
-    site=$OPTARG
-    echo "Sync site https://devel.onepointzero.org/sites/$site"
-    rsync -avh $site "onepointzero@onepointzero.org:/home/onepointzero/devel.onepointzero.org/sites/$site" --delete
+    if [ ! -f "$CONFIG_FILE_NAME" ]; then
+      echo "$CONFIG_FILE_NAME doesn't exists."
+      exit 1
+    fi
+
+    site=$(cat $CONFIG_FILE_NAME | jq -r '.site')
+    echo "Sync site $site..."
+    rsync -avh ./ "onepointzero@onepointzero.org:/home/onepointzero/devel.onepointzero.org/sites/$site/" --delete \
+    --exclude "$CONFIG_FILE_NAME" --exclude '.idea/' --exclude '.git/'
+    echo "Uploaded to: https://devel.onepointzero.org/sites/$site/"
     ;;
   d)
-    site=$OPTARG
-    echo "Sync site https://devel.onepointzero.org/sites/$site"
-    rsync -avh "onepointzero@onepointzero.org:/home/onepointzero/devel.onepointzero.org/sites/$site" $site  --delete
+    site=$(cat $CONFIG_FILE_NAME | jq -r '.site')
+    echo "Download site https://devel.onepointzero.org/sites/$site"
+    rsync -avh "onepointzero@onepointzero.org:/home/onepointzero/devel.onepointzero.org/sites/$site/" ./ --delete \
+    --exclude "$CONFIG_FILE_NAME" --exclude '.idea/' --exclude '.git/'
     ;;
   *)
     echo "Invalid option"
@@ -38,8 +66,6 @@ if [ $OPTIND -eq 1 ]; then
   usage
   exit
 fi
-
-
 
 # ssh onepointzero@onepointzero.org ls -l /home/onepointzero/devel.onepointzero.org/sites
 # ssh onepointzero@onepointzero.org ls /home/onepointzero/devel.onepointzero.org/sites/foo | cut -c1-20
