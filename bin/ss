@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+function usage {
+       printf "Usage:\n"
+       printf " -h                        Display this help message.\n"
+       printf " -d <site>                 Download site.\n"
+       printf " -u <site>                 Upload site.\n"
+       printf " -l                        List sites.\n"
+       exit 0
+}
+
+while getopts :u:d:lh opt; do
+  case ${opt} in
+  h)
+    usage
+    ;;
+  l)
+    ssh onepointzero@onepointzero.org ls /home/onepointzero/devel.onepointzero.org/sites | cut -c1-20
+    ;;
+  u)
+    site=$OPTARG
+    echo "Sync site https://devel.onepointzero.org/sites/$site"
+    rsync -avh $site "onepointzero@onepointzero.org:/home/onepointzero/devel.onepointzero.org/sites/$site" --delete
+    ;;
+  d)
+    site=$OPTARG
+    echo "Sync site https://devel.onepointzero.org/sites/$site"
+    rsync -avh "onepointzero@onepointzero.org:/home/onepointzero/devel.onepointzero.org/sites/$site" $site  --delete
+    ;;
+  *)
+    echo "Invalid option"
+    usage
+    ;;
+  esac
+done
+
+if [ $OPTIND -eq 1 ]; then
+  usage
+  exit
+fi
+
+
+
+# ssh onepointzero@onepointzero.org ls -l /home/onepointzero/devel.onepointzero.org/sites
+# ssh onepointzero@onepointzero.org ls /home/onepointzero/devel.onepointzero.org/sites/foo | cut -c1-20

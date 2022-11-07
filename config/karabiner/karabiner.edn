@@ -34,8 +34,9 @@
 
  ;; ------------ Launchers ------------
 
-   {:des "[uuid] Generate UUID" :rules [[:!CSu ["(uuidgen | tr '[:upper:]' '[:lower:]') | pbcopy" :!Cv]]]}
-   {:des "lauch numi" :rules [[:!Cpage_up "open /Applications/Numi.app"]]}
+   ;; {:des "[uuid] Generate UUID" :rules [[:!CSu ["(uuidgen | tr '[:upper:]' '[:lower:]') | pbcopy" :!Cv]]]}
+   ;; {:des "lauch numi" :rules [[:!Cpage_up "open /Applications/Numi.app"]]}
+   
    {:des "[Remap] Replace 'page up' to mute meet chrome" :rules [[:page_up :!OS1]]}
 
 
