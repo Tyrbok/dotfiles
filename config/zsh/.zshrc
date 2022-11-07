@@ -139,6 +139,7 @@ export EDITOR='vim'
 export PATH="$PATH:$HOME/.dotfiles/bin"
 export PATH="$PATH:$HOME/install/bin"
 export PATH="$PATH:$HOME/install/opt/flutter/bin"
+export PATH="$PATH:$GOPATH"
 
 # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
 export PATH="$PATH:$HOME/.rvm/bin"
@@ -146,4 +147,7 @@ export PATH="$PATH":"$HOME/.pub-cache/bin"
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-export NAVI_PATH=/Users/jesus/.dotfiles/config/navi
+export NAVI_PATH=~/.dotfiles/config/navi
+
+export GOPATH=~/projects/go
+export PATH="$PATH:$GOPATH/bin"
