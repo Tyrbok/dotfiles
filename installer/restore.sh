@@ -5,6 +5,7 @@ colors
 
 cd $HOME
 PATH_ZSH_DOTFILES=$PWD/.dotfiles/config/zsh
+PATH_WARP_DOTFILES=$PWD/.dotfiles/config/warp
 PATH_ITERM_DOTFILES=$PWD/.dotfiles/config/iterm2
 PATH_GIT_DOTFILES=$PWD/.dotfiles/config/git
 PATH_INSTALL_TEMPLATES=$PWD/.dotfiles/installer/_templates
@@ -32,5 +33,9 @@ function _link_path() {
 }
 
 for step in $(ls -1 $PATH_INSTALL_STEPS | sort -t'.' -n -k1); do
-  source "$PATH_INSTALL_STEPS/$step"
+if [[ $step =~ .*\.skip$ ]]; then
+    print -P "$fg[yellow]* Ignore Step: $step ...$reset_color"
+  else
+    source "$PATH_INSTALL_STEPS/$step"
+  fi
 done
