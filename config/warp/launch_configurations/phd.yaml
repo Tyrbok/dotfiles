@@ -1,0 +1,18 @@
+# PHD Launch Configuration
+#
+
+---
+name: PHD Launcher
+windows:
+  - tabs:
+      - title: PHD
+        layout:
+          split_direction: horizontal
+          panes: 
+            - cwd: "/Volumes/Seagate Bac/backups/My_Passport_20171225/backup_iomega/cdteb/__pending"
+              commands:
+                - exec: ../bin/phd.py add -d
+            - cwd: "/Volumes/Seagate Bac/backups/My_Passport_20171225/backup_iomega/cdteb/__pending"
+              commands:
+                - exec: open ./
+                - exec: ../bin/phd.py run
