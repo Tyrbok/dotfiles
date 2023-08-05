@@ -46,6 +46,7 @@
 
    {:des   "Open mode"
     :rules [
+      :open-mode [:w "open -a 'Warp.app'"]
       :open-mode [:t "open -a 'iTerm.app'"]
       ;; :open-mode [:e "open -a 'Evernote.app'"]
       :open-mode [:e [:!CTe :escape :!CO1 :!Cj]]oww
