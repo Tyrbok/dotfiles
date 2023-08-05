@@ -20,7 +20,7 @@ function __init {
 
   echo "Enter site name:"
   read -r new_site_name
-  echo '{"site":"'$new_site_name'"}' | jq >$CONFIG_FILE_NAME
+  echo '{"site":"'$new_site_name'", "build_path":"./", "_scripts": {"build": "<command>"}}' | jq >$CONFIG_FILE_NAME
   echo "$CONFIG_FILE_NAME created."
 }
 
@@ -31,7 +31,7 @@ while getopts :lhiud opt; do
     ;;
   l)
     echo "Available sites:"
-    ssh onepointzero@onepointzero.org ls /home/onepointzero/devel.onepointzero.org/sites | \
+    ssh onepointzero@onepointzero.org ls /home/onepointzero/devel.onepointzero.org/sites |
       cut -c1-20 | xargs -I{} echo "* {}"
     ;;
   i)
@@ -42,18 +42,36 @@ while getopts :lhiud opt; do
       echo "$CONFIG_FILE_NAME doesn't exists."
       exit 1
     fi
-
     site=$(cat $CONFIG_FILE_NAME | jq -r '.site')
-    echo "Sync site $site..."
-    rsync -avh ./ "onepointzero@onepointzero.org:/home/onepointzero/devel.onepointzero.org/sites/$site/" --delete \
-    --exclude "$CONFIG_FILE_NAME" --exclude '.idea/' --exclude '.git/'
+    build_path=$(cat $CONFIG_FILE_NAME | jq -r '.build_path')
+    build_command=$(cat $CONFIG_FILE_NAME | jq -r '.scripts.build')
+    if [ "$build_command" != "null" ]; then
+      echo "Compile site $site... with ${build_command}"
+      source $build_command
+    fi
+
+    if [ "$build_path" == "null" ]; then build_path="./"; fi
+    echo "Sync site $site... from ${build_path}"
+    rsync -avh "$build_path/" "onepointzero@onepointzero.org:/home/onepointzero/devel.onepointzero.org/sites/$site/" --delete \
+      --exclude "$CONFIG_FILE_NAME" --exclude '.idea/' --exclude '.git/'
     echo "Uploaded to: https://devel.onepointzero.org/sites/$site/"
     ;;
   d)
+    if [ ! -f "$CONFIG_FILE_NAME" ]; then
+      echo "$CONFIG_FILE_NAME doesn't exists."
+      exit 1
+    fi
     site=$(cat $CONFIG_FILE_NAME | jq -r '.site')
+    build_path=$(cat $CONFIG_FILE_NAME | jq -r '.build_path')
+    if [ "$build_path" == "null" ]; then build_path="./"; fi
+    if [ "$build_path" != "./" ]; then
+      echo "Waring! It seems to be compiled project"
+      exit 1
+    fi
+
     echo "Download site https://devel.onepointzero.org/sites/$site"
     rsync -avh "onepointzero@onepointzero.org:/home/onepointzero/devel.onepointzero.org/sites/$site/" ./ --delete \
-    --exclude "$CONFIG_FILE_NAME" --exclude '.idea/' --exclude '.git/'
+      --exclude "$CONFIG_FILE_NAME" --exclude '.idea/' --exclude '.git/'
     ;;
   *)
     echo "Invalid option"
