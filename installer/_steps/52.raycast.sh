@@ -1,14 +1,14 @@
-print -P "$fg[yellow]* Installing raycast config...$reset_color"
+print -P "$fg[yellow]* Installing Raycast config...$reset_color"
 
-if [ ! -d /Applications/Warp.app ]; then
-  brew install --cask warp
+if [ ! -d /Applications/Raycast.app ]; then
+  brew install --cask raycast
 else
-  print -P "$fg[magenta] - Warp app already exists...$reset_color"
+  print -P "$fg[magenta] - Raycast app already exists...$reset_color"
 fi
 
-if [ -d "$PWD/.warp" ]; then
-  print -P "$fg[magenta] - Replace old .warp config...$reset_color"
-  rm -rf $PWD/.warp
+if [[ -d "$PWD/.config/raycast" || -L "$PWD/.config/raycast" ]]; then
+  print -P "$fg[magenta] - Replace old Raycast config...$reset_color"
+  rm -rf $PWD/.config/raycast
 fi
 
-_link $PATH_WARP_DOTFILES/warp $PWD/.warp
+_link $PATH_RAYCAST_DOTFILES/ $PWD/.config/raycast
