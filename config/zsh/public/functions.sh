@@ -7,6 +7,26 @@ function flutter_code_build {
     fi
 }
 
+clean_flutter_projects() {
+    # Comprueba si se proporcionó un argumento
+    if [ -z "$1" ]; then
+        echo "🚫 Usage: clean_flutter_projects [path]"
+        return 1
+    fi
+
+    echo "🔍 Searching for pubspec.yaml files in $1. Please wait..."
+
+    local currentDir=$(pwd)
+    find "$1" -name 'pubspec.yaml' | while read -r file; do
+        local dir=$(dirname "$file")
+        echo "✅ Found pubspec.yaml in: $dir"
+        cd "$dir" && flutter clean
+    done
+    cd "$currentDir"
+
+    echo "🎉 Operation completed."
+}
+
 function clean_gradle_projects {
     if [ -z "$1" ]
     then

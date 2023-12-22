@@ -2,11 +2,14 @@
 
 # set -euo pipefail
 
+selected_branch=$1
+
 if [ "$1" = "" ]; then
-  echo "Usage: git check-conflicts <local_branch_name>"
+  echo "Usage tip: git check-conflicts <local_branch_name>"
   echo "Available branches"
   git branch
-  exit 1
+  selected_branch=$(git branch --all | grep -v remotes | fzf)
+  selected_branch=$(echo "$selected_branch" | sed -e 's/^[[:space:]]*//')
 fi
 
 if [ -z "$(git status --porcelain)" ]; then
@@ -17,16 +20,17 @@ else
   exit 1
 fi
 
-branches=$(git branch | grep "$1" | xargs)
-
-if [ "$branches" != "$1" ]; then
+branches=$(git branch | grep "$selected_branch" | xargs)
+#echo "x${branches}x"
+#echo "x${selected_branch}x"
+if [ "$branches" != "$selected_branch" ]; then
   echo "Branch $1 not found x${branches}x"
   echo "Available branches"
   git branch
   exit 1
 fi
 
-git merge --no-commit --no-ff "$1"
+git merge --no-commit --no-ff "$selected_branch"
 
 if [ "$?" = "0" ]; then
   echo "🎉 No conflicts found."

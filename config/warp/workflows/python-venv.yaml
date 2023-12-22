@@ -4,6 +4,7 @@ name: Create and activate python virtual environment
 # The corresponding command for the workflow. Any arguments should be surrounded with two curly braces. E.g `command {{arg}}`.
 command: |-
     python -m venv {{path}}
+    source {{path}}/bin/activate
 # Any tags that the workflow should be categorized with.
 tags:
   - python
