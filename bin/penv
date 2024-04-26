@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+if [ $# -eq 1 ]; then
+  project_name="$1"
+else
+  echo "Please enter the project name: "
+  read project_name
+fi
+
+if [ -d "$project_name" ]; then
+  echo "The directory '$project_name' already exists."
+  exit 1
+fi
+
+mkdir "$project_name"
+echo "The directory '$project_name' has been successfully created."
+cd "$project_name"
+
+python -m venv venv
+source venv/bin/activate
+touch requirements.txt
+pip install --upgrade pip
+pip install -r requirements.txt
+
+cp $HOME/.dotfiles/res/Makefile.base Makefile
+
+echo ".PHONY: clean" >> Makefile
+echo "clean: ## clean python environment" >> Makefile
+echo "	@rm -rf venv" >> Makefilemake

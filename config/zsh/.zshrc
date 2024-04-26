@@ -151,3 +151,15 @@ export NAVI_PATH=~/.dotfiles/config/navi
 
 export GOPATH=~/projects/go
 export PATH="$PATH:$GOPATH/bin"
+
+# bun completions
+[ -s "/Users/jesus/.bun/_bun" ] && source "/Users/jesus/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+export PATH="$HOME/.phpenv/bin:$PATH"
+eval "$(phpenv init -)"
+export PATH="$HOME/.phpenv/plugins/php-build/bin:$PATH"
+export PATH="/usr/local/opt/php@8.2/bin:$PATH"
+export PATH="/usr/local/opt/php@8.2/sbin:$PATH"

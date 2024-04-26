@@ -1,0 +1,20 @@
+#!/usr/bin/env zsh
+
+echo "🚀 Cleaning all..."
+echo "⚙️ Execute projects 'make clean'..."
+
+find $HOME/projects/  \( -name 'node_modules' -o -name '.idea' \) -prune -o -name 'Makefile' -print |
+awk -F/ '{print NF-1, $0}' |
+sort -k1,1n |
+awk '!seen[$2]++' |
+awk '$1==min {print $2} {min=$1}' |
+while read makefilePath; do
+    dir=$(dirname "$makefilePath")
+    echo "Entering $dir and running 'make clean'"
+    (cd "$dir" && make clean)
+done
+
+echo "⚙️ Remove Huggingface Cache..."
+rm -rf $HOME/.cache/huggingface
+
+echo "🎉 Done..."
