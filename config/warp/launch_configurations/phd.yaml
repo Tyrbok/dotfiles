@@ -9,10 +9,12 @@ windows:
         layout:
           split_direction: horizontal
           panes: 
-            - cwd: "/Volumes/Seagate Bac/backups/My_Passport_20171225/backup_iomega/cdteb/__pending"
+            - cwd: "/Volumes/Seagate Bac/backups/My_Passport_20171225/backup_iomega/cdteb/bin/"
               commands:
-                - exec: ../bin/phd.py add -d
-            - cwd: "/Volumes/Seagate Bac/backups/My_Passport_20171225/backup_iomega/cdteb/__pending"
+                - exec: source venv/bin/activate
+                - exec: ./phd.py add -d
+            - cwd: "/Volumes/Seagate Bac/backups/My_Passport_20171225/backup_iomega/cdteb/bin/"
               commands:
-                - exec: open ./
-                - exec: ../bin/phd.py run
+                - exec: source venv/bin/activate
+                - exec: open ../__pending
+                - exec: ./phd.py run

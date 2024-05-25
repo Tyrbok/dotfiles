@@ -1,0 +1,13 @@
+#!/bin/bash
+
+PROJECT_DIR="$HOME/projects/personal/autoflow"
+
+if [ -d "$PROJECT_DIR" ]; then
+    cd "$PROJECT_DIR"
+    source venv/bin/activate
+    python -m autoflow create "$@"
+    deactivate
+else
+    echo "The directory $PROJECT_DIR does not exist."
+    exit 1
+fi

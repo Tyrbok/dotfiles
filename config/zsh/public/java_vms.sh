@@ -1,6 +1,6 @@
 export JAVA_7_HOME=$(/usr/libexec/java_home -v1.7)
 # export JAVA_8_HOME=$(/usr/libexec/java_home -v1.8)
-export JAVA_8_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_241.jdk/Contents/Home
+export JAVA_8_HOME=/Library/Java/JavaVirtualMachines/jdk-1.8.jdk/Contents/Home
 # # export JAVA_9_HOME=$(/usr/libexec/java_home -v9)
 # # export JAVA_10_HOME=$(/usr/libexec/java_home -v10)
 # export JAVA_12_HOME=$(/usr/libexec/java_home -v12)
