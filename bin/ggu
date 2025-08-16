@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# ggu: Google Drive URL resolver (descubre la URL final de descarga directa)
+
+if [ -z "$1" ]; then
+  read -rp "Enter Google Drive file URL: " URL
+else
+  URL="$1"
+fi
+
+# Extraer ID desde la URL
+FILE_ID=$(echo "$URL" | grep -o '/d/[^/]*' | cut -d'/' -f3)
+
+if [ -z "$FILE_ID" ]; then
+  echo "Error: Could not extract file ID from URL."
+  exit 1
+fi
+
+# Obtener token de confirmación si aplica
+CONFIRM=$(wget --quiet --save-cookies /tmp/ggu_cookies.txt --keep-session-cookies --no-check-certificate \
+  "https://drive.google.com/uc?export=download&id=${FILE_ID}" -O- | \
+  LC_ALL=C sed -n 's/.*confirm=\([0-9A-Za-z_]*\).*/\1/p')
+
+# Construir URL de solicitud inicial
+if [ -n "$CONFIRM" ]; then
+  REQUEST_URL="https://drive.google.com/uc?export=download&confirm=${CONFIRM}&id=${FILE_ID}"
+else
+  REQUEST_URL="https://drive.google.com/uc?export=download&id=${FILE_ID}"
+fi
+
+# Usar curl para seguir la redirección y obtener la URL final
+FINAL_URL=$(curl -s -L -o /dev/null -w '%{url_effective}' "$REQUEST_URL")
+
+# Limpiar
+rm -f /tmp/ggu_cookies.txt
+
+# Imprimir la URL final (sin redirección)
+echo "$FINAL_URL"

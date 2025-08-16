@@ -5,3 +5,5 @@
 .gitconfig
 
 **/automatic_backups/
+
+config/raycast/extensions

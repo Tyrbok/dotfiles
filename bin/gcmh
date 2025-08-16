@@ -1,0 +1,34 @@
+#! /usr/bin/env python3
+
+import os
+import subprocess
+
+def get_git_diff():
+    result = subprocess.run(["git", "diff"], capture_output=True, text=True)
+    return result.stdout
+
+def get_guidelines():
+    guidelines_path = ".junie/guidelines.md"
+    if os.path.exists(guidelines_path):
+        with open(guidelines_path, "r", encoding="utf-8") as file:
+            return file.read()
+    return ""
+
+def generate_prompt(diff, guidelines):
+    prompt = "Please analyze the following changes in the Python project and provide a concise, clear commit message based on project guidelines:\n\n"
+    if guidelines:
+        prompt += "Project Guidelines:\n" + guidelines + "\n\n"
+    prompt += "Diff:\n```diff\n" + diff + "\n```"
+    return prompt
+
+def main():
+    diff = get_git_diff()
+    if not diff.strip():
+        print("No changes detected in git diff.")
+        return
+    guidelines = get_guidelines()
+    prompt = generate_prompt(diff, guidelines)
+    print(prompt)
+
+if __name__ == '__main__':
+    main()

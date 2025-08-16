@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+
+# Verify that yq and fzf are installed
+if ! command -v yq &> /dev/null; then
+  echo "yq is not installed. Please install it before running this script."
+  exit 1
+fi
+
+if ! command -v fzf &> /dev/null; then
+  echo "fzf is not installed. Please install it before running this script."
+  exit 1
+fi
+
+# Check if a compose file is provided via -f argument
+while getopts "f:" opt; do
+  case $opt in
+    f)
+      compose_file="$OPTARG"
+      ;;
+    *)
+      echo "Invalid option: -$OPTARG"
+      exit 1
+      ;;
+  esac
+done
+
+# If no compose file is provided, find all yml and yaml files that have 'compose' in the filename
+if [[ -z "$compose_file" ]]; then
+  compose_files=($(ls *.{yml,yaml} 2> /dev/null | grep -i 'compose' | grep -viE 'test|demo'))
+
+  # If no compose files are found, exit
+  if [[ ${#compose_files[@]} -eq 0 ]]; then
+    echo "No compose files found in the current directory."
+    exit 1
+  fi
+
+  # If only one compose file is found, use it
+  if [[ ${#compose_files[@]} -eq 1 ]]; then
+    compose_file="${compose_files[0]}"
+  else
+    # Display the compose files with fzf to select one
+    compose_file=$(printf "%s\n" "${compose_files[@]}" | fzf)
+
+    # Verify if a compose file has been selected
+    if [[ -z "$compose_file" ]]; then
+      echo "No compose file was selected."
+      exit 1
+    fi
+  fi
+fi
+
+# Extract the service names from the selected compose file using yq
+services=$(yq eval '.services | keys | .[]' "$compose_file")
+
+# Get the default search text from the first parameter
+shift $((OPTIND-1))
+default_search="$1"
+
+# Filter services based on the default search text if provided
+filtered_services=$(echo "$services" | grep -i "$default_search")
+
+# If only one service matches, select it automatically
+if [[ $(echo "$filtered_services" | wc -l) -eq 1 ]]; then
+  elected_service="$filtered_services"
+else
+  # Display the services with fzf to select one, applying the default search text if provided
+  elected_service=$(echo "$filtered_services" | fzf -q "$default_search")
+fi
+
+# Verify if a service has been selected
+if [[ -z "$elected_service" ]]; then
+  echo "No service was selected."
+  exit 1
+fi
+
+# Display a message before starting the selected service
+echo "🚀 Restarting the service: $elected_service..."
+
+# Execute the command to start the selected service
+docker compose -f "$compose_file" up --build "$elected_service" -d
+
+echo
+# Show the docker compose command that will be executed
+echo "🔧 Command: "
+echo "   docker compose -f \"$compose_file\" up --build \"$elected_service\" -d"
+
+echo
+# Display a message after starting the selected service
+echo "✅ Service $elected_service restarted successfully."

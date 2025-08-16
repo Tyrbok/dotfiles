@@ -1,11 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import getopt
 import os
 import select
 import sys
 import time
 
-import lorem
+# import lorem
 
 
 def help_usage(exit_value=0):
@@ -19,7 +19,12 @@ def help_usage(exit_value=0):
 
 def command_commit(index, commit_type):
     file_name = "file_" + str(index) + ".txt"
-    p = lorem.paragraph()
+    # p = lorem.paragraph()
+    p = ("Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
+         "In augue mi, viverra vitae facilisis sed, commodo interdum dui. "
+         "Proin accumsan luctus nisi, ut condimentum ante aliquet in. "
+         "Integer fermentum varius porttitor."
+         " Duis et sem a orci congue tincidunt. In quis diam aliquet, vulputate tellus et, blandit lorem. Donec nibh mauris, tincidunt sed consequat sed, varius sed lectus. Mauris semper efficitur nibh eget consectetur. Pellentesque eu feugiat ipsum. Sed semper est at facilisis dignissim. Aliquam faucibus ipsum et pretium efficitur.")
     f = open(file_name, mode='a')
     f.write(p)
     f.close()

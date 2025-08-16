@@ -1,0 +1,177 @@
+#!/usr/bin/env python3
+
+import os
+import subprocess
+import sys
+import tempfile
+import importlib.util
+
+def install_local(package, local_dir):
+    try:
+        spec = importlib.util.find_spec(package)
+        if spec is None:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", package, "--target", local_dir])
+        sys.path.insert(0, local_dir)
+    except subprocess.CalledProcessError:
+        print(f"❌ Failed to install {package}.")
+        sys.exit(1)
+
+temp_dir = tempfile.mkdtemp()
+install_local('InquirerPy', temp_dir)
+from InquirerPy import prompt
+
+def check_git_repo():
+    if not os.path.isdir('.git'):
+        print("Error: You are not in a Git repository.")
+        sys.exit(1)
+
+def check_git_status():
+    try:
+        result = subprocess.run(['git', 'status', '--porcelain'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if result.returncode != 0:
+            sys.exit(1)
+        if result.stdout.strip():
+            print("Error: The working directory is not clean.")
+            print(result.stdout)
+            sys.exit(1)
+    except Exception as e:
+        sys.exit(1)
+
+def get_current_branch():
+    try:
+        result = subprocess.run(['git', 'branch', '--show-current'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if result.returncode != 0:
+            sys.exit(1)
+        return result.stdout.strip()
+    except Exception as e:
+        sys.exit(1)
+
+def get_local_branches():
+    try:
+        result = subprocess.run(['git', 'branch'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if result.returncode != 0:
+            sys.exit(1)
+        branches = result.stdout.splitlines()
+        return [branch.strip().replace('* ', '') for branch in branches]
+    except Exception as e:
+        sys.exit(1)
+
+def select_branch(branches):
+    questions = [
+        {
+            "type": "list",
+            "name": "branch",
+            "message": "Select a branch:",
+            "choices": branches
+        }
+    ]
+    answers = prompt(questions)
+    return answers["branch"]
+
+def check_merge_conflicts(selected_branch):
+    current_branch = get_current_branch()
+    if current_branch == selected_branch:
+        print(f"Error: You are already on branch {current_branch}. Please select a different branch.")
+        sys.exit(1)
+    try:
+        result = subprocess.run(['git', 'status', '--porcelain'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if result.returncode != 0:
+            sys.exit(1)
+        if result.stdout.strip():
+            print("Error: The working directory is not clean.")
+            print(result.stdout)
+            sys.exit(1)
+        result = subprocess.run(['git', 'branch', '--list', selected_branch], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if result.returncode != 0 or not result.stdout.strip():
+            print(f"Error: Branch {selected_branch} not found.")
+            sys.exit(1)
+        subprocess.run(['git', 'merge', '--no-commit', '--no-ff', selected_branch], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run(['git', 'merge', '--abort'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    except Exception as e:
+        sys.exit(1)
+
+def get_commit_message():
+    print("Enter the commit message. End input with Ctrl+D:")
+    commit_message = sys.stdin.read().strip()
+    if not commit_message:
+        print("Error: Commit message cannot be empty.")
+        sys.exit(1)
+    return commit_message
+
+def get_yes_no_input(prompt_message):
+    while True:
+        user_input = input(prompt_message).lower()
+        if user_input in ['y', 'n', 'yes', 'no', '']:
+            return user_input in ['y', 'yes', '']
+        print("Please respond with 'Y' or 'n'.")
+
+def confirm_proceed():
+    if not get_yes_no_input("Do you want to proceed with the merge? This action cannot be undone. (Y/n): "):
+        print("Process canceled.")
+        sys.exit(0)
+
+def perform_squash_merge(selected_branch, commit_message):
+    try:
+        result = subprocess.run(['git', 'merge', '--squash', selected_branch], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if result.returncode == 0:
+            commit_result = subprocess.run(['git', 'commit', '-m', commit_message], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            if commit_result.returncode == 0:
+                print("🎉 Commit completed successfully.")
+                return True
+            else:
+                print(f"❗️ Error during commit: {commit_result.stderr}")
+                subprocess.run(['git', 'reset', '--hard'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                sys.exit(1)
+        else:
+            print(f"❗️ Error during squash merge: {result.stderr}")
+            sys.exit(1)
+    except Exception as e:
+        sys.exit(1)
+
+def check_and_push_branch(selected_branch):
+    try:
+        result = subprocess.run(['git', 'ls-remote', '--heads', 'origin', selected_branch], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if result.returncode == 0 and result.stdout.strip():
+            subprocess.run(['git', 'push', 'origin', get_current_branch()], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            print(f"🎉 Push to remote branch {selected_branch} completed successfully.")
+            return True
+        else:
+            print(f"Remote branch for {selected_branch} not found.")
+            return False
+    except Exception as e:
+        sys.exit(1)
+
+def confirm_and_delete_branch(branch_name, remote=False):
+    try:
+        if remote:
+            prompt_message = f"Do you want to delete the remote branch '{branch_name}'? (Y/n): "
+            command = ['git', 'push', 'origin', '--delete', branch_name]
+        else:
+            prompt_message = f"Do you want to delete the local branch '{branch_name}'? (Y/n): "
+            command = ['git', 'branch', '-D', branch_name]
+
+        if get_yes_no_input(prompt_message):
+            subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            print(f"🎉 {'Remote' if remote else 'Local'} branch '{branch_name}' deleted.")
+        else:
+            print(f"{'Remote' if remote else 'Local'} branch '{branch_name}' not deleted.")
+    except Exception as e:
+        sys.exit(1)
+
+if __name__ == "__main__":
+    check_git_repo()
+    check_git_status()
+    branches = get_local_branches()
+    if not branches:
+        print("No local branches found.")
+        sys.exit(1)
+    selected_branch = select_branch(branches)
+    print(f"You have selected branch: {selected_branch}")
+    check_merge_conflicts(selected_branch)
+    commit_message = get_commit_message()
+    confirm_proceed()
+    if perform_squash_merge(selected_branch, commit_message):
+        has_remote_branch = check_and_push_branch(selected_branch)
+        confirm_and_delete_branch(selected_branch)
+        if has_remote_branch:
+            confirm_and_delete_branch(selected_branch, remote=True)

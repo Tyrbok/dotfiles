@@ -1,0 +1,94 @@
+#!/usr/bin/env python3
+import sys
+import http.client
+import gzip, zlib
+from urllib.parse import urlparse
+
+try:
+    import brotli
+except Exception:
+    brotli = None
+
+raw = sys.stdin.read()
+if not raw.strip():
+    print("❌ No se ha introducido ninguna petición.")
+    sys.exit(1)
+
+lines = raw.splitlines()
+i = 0
+while i < len(lines) and not lines[i].strip():
+    i += 1
+if i >= len(lines):
+    print("❌ No se ha encontrado línea de método y URL.")
+    sys.exit(1)
+
+req_line = lines[i].strip()
+i += 1
+parts = req_line.split()
+if len(parts) < 2:
+    print("❌ Formato inválido en la primera línea. Debe ser: METHOD URL")
+    sys.exit(1)
+
+method = parts[0].upper()
+url = parts[1]
+parsed_url = urlparse(url)
+
+headers = {}
+while i < len(lines):
+    line = lines[i]; i += 1
+    if line.strip() == "":
+        break
+    if ":" in line:
+        k, v = line.split(":", 1)
+        headers[k.strip()] = v.strip()
+
+body = "\n".join(lines[i:]) if i < len(lines) else None
+
+# Forzar respuesta sin compresión si quieres evitar descomprimir:
+# headers.pop("Accept-Encoding", None)
+# headers["Accept-Encoding"] = "identity"
+
+if parsed_url.scheme == "https":
+    conn = http.client.HTTPSConnection(parsed_url.hostname, parsed_url.port or 443)
+else:
+    conn = http.client.HTTPConnection(parsed_url.hostname, parsed_url.port or 80)
+
+path = parsed_url.path or "/"
+if parsed_url.query:
+    path += "?" + parsed_url.query
+
+conn.request(method, path, body=body, headers=headers)
+response = conn.getresponse()
+
+print(f"HTTP/{response.version/10:.1f} {response.status} {response.reason}")
+for k, v in response.getheaders():
+    print(f"{k}: {v}")
+print()
+
+raw_data = response.read()
+encoding = (response.getheader("Content-Encoding") or "identity").lower()
+if encoding in ("gzip", "x-gzip"):
+    raw_data = gzip.decompress(raw_data)
+elif encoding == "deflate":
+    try:
+        raw_data = zlib.decompress(raw_data, -zlib.MAX_WBITS)
+    except zlib.error:
+        raw_data = zlib.decompress(raw_data)
+elif encoding == "br":
+    if brotli:
+        raw_data = brotli.decompress(raw_data)
+    else:
+        sys.stdout.buffer.write(raw_data)
+        sys.exit(0)
+
+ctype = (response.getheader("Content-Type") or "").lower()
+charset = "utf-8"
+if "charset=" in ctype:
+    charset = ctype.split("charset=", 1)[1].split(";")[0].strip()
+
+try:
+    print(raw_data.decode(charset))
+except Exception:
+    sys.stdout.buffer.write(raw_data)
+
+conn.close()

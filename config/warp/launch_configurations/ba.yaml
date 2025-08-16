@@ -1,0 +1,31 @@
+# PHD Launch Configuration
+#
+
+---
+name: BASS Launcher
+windows:
+  - tabs:
+      - title: BASS Logs
+        layout:
+          split_direction: horizontal
+          panes: 
+            - cwd: "~/projects/bitban/data/bcube-assistant-app/"
+              title: Worker Logs
+              commands:
+                - exec: dl bcube-assistant-app-worker
+            - cwd: "~/projects/bitban/data/bcube-assistant-app/"
+              title: Worker Logs
+              commands:
+                - exec: dl bcube-assistant-app-api
+      - title: BASS Utils
+        layout:
+          split_direction: horizontal
+          panes: 
+            - cwd: "~/projects/bitban/data/bcube-assistant-app/"
+              title: Ollama
+              commands:
+                - exec: OLLAMA_HOST=0.0.0.0 ollama serve
+            - cwd: "~/projects/bitban/data/bcube-assistant-app/"
+              title: CPI Script
+              commands:
+                - exec: python ./scripts/_cpi.py --run -d ./

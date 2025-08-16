@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+
+import os
+import re
+import curses
+import json
+
+def check_files():
+    current_directory = os.getcwd()
+    private_json_path = os.path.join(current_directory, 'http-client.private.env.json')
+    public_json_path = os.path.join(current_directory, 'http-client.env.json')
+    workspace_path = os.path.join(current_directory, '.idea', 'workspace.xml')
+
+    if not os.path.exists(workspace_path):
+        print("❌ workspace.xml not found")
+        return None, None, None
+
+    if not os.path.exists(private_json_path) and not os.path.exists(public_json_path):
+        print("❌ Neither http-client.private.env.json nor http-client.env.json found")
+        return None, None, None
+
+    return private_json_path, public_json_path, workspace_path
+
+def load_keys_from_json(json_path):
+    if not json_path or not os.path.exists(json_path):
+        return {}
+    try:
+        with open(json_path, 'r') as file:
+            data = json.load(file)
+            return data
+    except json.JSONDecodeError:
+        print("⚠️ Error: Failed to decode JSON from", json_path)
+        return {}
+
+def merge_keys(private_keys, public_keys):
+    merged_keys = public_keys.copy()
+    merged_keys.update(private_keys)  # private_keys override public_keys in case of duplicates
+    return list(merged_keys.keys())
+
+def update_workspace_file(workspace_path, selected_key):
+    with open(workspace_path, 'r') as file:
+        lines = file.readlines()
+
+    updated_lines = []
+    pattern = re.compile(r'(<file url="file://\$PROJECT_DIR\$/.*\.http" environment=")([^"]+)(".*>)')
+
+    for line in lines:
+        updated_line = re.sub(pattern, fr'\1{selected_key}\3', line)
+        updated_lines.append(updated_line)
+
+    with open(workspace_path, 'w') as file:
+        file.writelines(updated_lines)
+
+    print(f"✅ workspace.xml has been updated with '{selected_key}' in the environment attributes.")
+
+def select_key(stdscr, keys):
+    curses.curs_set(0)
+    selected_idx = 0
+
+    while True:
+        stdscr.clear()
+        stdscr.addstr("🎯 Use the arrow keys to select an option and press Enter:\n\n")
+
+        for idx, key in enumerate(keys):
+            if idx == selected_idx:
+                stdscr.addstr(f"> {key}\n", curses.A_REVERSE)
+            else:
+                stdscr.addstr(f"  {key}\n")
+
+        key = stdscr.getch()
+
+        if key == curses.KEY_UP:
+            selected_idx = (selected_idx - 1) % len(keys)
+        elif key == curses.KEY_DOWN:
+            selected_idx = (selected_idx + 1) % len(keys)
+        elif key == ord('\n'):
+            break
+
+    return keys[selected_idx]
+
+def main(stdscr):
+    private_json_path, public_json_path, workspace_path = check_files()
+
+    if not private_json_path or not public_json_path or not workspace_path:
+        return None, None
+
+    private_keys = load_keys_from_json(private_json_path)
+    public_keys = load_keys_from_json(public_json_path)
+
+    if not private_keys and not public_keys:
+        print("⚠️ No keys available to select.")
+        return None, None
+
+    keys = merge_keys(private_keys, public_keys)
+    selected_key = select_key(stdscr, keys)
+
+    return selected_key, workspace_path
+
+if __name__ == "__main__":
+    selected_key, workspace_path = curses.wrapper(main)
+
+    if selected_key and workspace_path:
+        update_workspace_file(workspace_path, selected_key)
+        print(f"\n🎉 Done! The key '{selected_key}' has been set as the environment in workspace.xml.")
+    else:
+        print("❌ Operation aborted due to missing files.")
