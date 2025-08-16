@@ -5,6 +5,7 @@ import subprocess
 import sys
 import tempfile
 import importlib.util
+import json
 
 def install_local(package, local_dir):
     try:
@@ -18,7 +19,71 @@ def install_local(package, local_dir):
 
 temp_dir = tempfile.mkdtemp()
 install_local('InquirerPy', temp_dir)
+install_local('google-genai', temp_dir)
+
 from InquirerPy import prompt
+from google import genai
+from google.genai import types
+
+def get_gemini_api_key():
+    """Read Gemini API key from ~/.llm_api_keys.json"""
+    try:
+        config_path = os.path.expanduser("~/.llm_api_keys.json")
+        with open(config_path, 'r') as f:
+            config = json.load(f)
+        return config['providers']['gemini']['apikey']
+    except Exception as e:
+        print(f"Error reading API key: {e}")
+        return None
+
+def generate_commit_message_with_gemini(diff_content):
+    """Generate commit message using Gemini API"""
+    api_key = get_gemini_api_key()
+    if not api_key:
+        return None
+
+    try:
+        client = genai.Client(api_key=api_key)
+        model = "gemini-2.0-flash-lite"
+
+        prompt_text = f"""Based on this git diff, generate a concise and descriptive commit message following conventional commit format:
+
+{diff_content}
+
+Rules:
+- Use conventional commits format: type(scope): description
+- Keep it under 50 characters for the subject line
+- Types: feat, fix, docs, style, refactor, test, chore
+- Be specific about what changed
+- Use imperative mood (e.g., "add", "fix", "update")
+
+Generate only the commit message, nothing else."""
+
+        contents = [
+            types.Content(
+                role="user",
+                parts=[
+                    types.Part.from_text(text=prompt_text),
+                ],
+            ),
+        ]
+
+        config = types.GenerateContentConfig()
+
+        response = client.models.generate_content(
+            model=model,
+            contents=contents,
+            config=config,
+        )
+
+        if response and response.text:
+            return response.text.strip()
+        else:
+            return None
+
+    except Exception as e:
+        print(f"Error calling Gemini API: {e}")
+        return None
 
 def check_git_repo():
     if not os.path.isdir('.git'):
@@ -90,13 +155,55 @@ def check_merge_conflicts(selected_branch):
     except Exception as e:
         sys.exit(1)
 
-def get_commit_message():
-    print("Enter the commit message. End input with Ctrl+D:")
-    commit_message = sys.stdin.read().strip()
-    if not commit_message:
-        print("Error: Commit message cannot be empty.")
+def get_commit_message(selected_branch):
+    # Show the diff between current branch and selected branch
+    current_branch = get_current_branch()
+    print(f"Changes between {current_branch} and {selected_branch}:")
+    print("=" * 50)
+
+    diff_content = ""
+    try:
+        result = subprocess.run(['git', 'diff', current_branch, selected_branch], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if result.returncode == 0:
+            if result.stdout.strip():
+                diff_content = result.stdout
+                print(diff_content)
+            else:
+                print("No differences found between the branches.")
+                return "chore: merge branches with no changes"
+        else:
+            print(f"Error getting diff: {result.stderr}")
+            sys.exit(1)
+    except Exception as e:
+        print(f"Error executing git diff: {e}")
         sys.exit(1)
-    return commit_message
+
+    print("=" * 50)
+
+    # Generate commit message with Gemini
+    print("🤖 Generating commit message with Gemini...")
+    suggested_message = generate_commit_message_with_gemini(diff_content)
+
+    if suggested_message:
+        print(f"💡 Suggested commit message: {suggested_message}")
+
+        if get_yes_no_input("Do you want to use this suggested commit message? (Y/n): "):
+            return suggested_message
+        else:
+            print("Enter your custom commit message. End input with Ctrl+D:")
+            commit_message = sys.stdin.read().strip()
+            if not commit_message:
+                print("Error: Commit message cannot be empty.")
+                sys.exit(1)
+            return commit_message
+    else:
+        print("⚠️  Could not generate commit message with Gemini. Please enter manually.")
+        print("Enter the commit message. End input with Ctrl+D:")
+        commit_message = sys.stdin.read().strip()
+        if not commit_message:
+            print("Error: Commit message cannot be empty.")
+            sys.exit(1)
+        return commit_message
 
 def get_yes_no_input(prompt_message):
     while True:
@@ -168,7 +275,7 @@ if __name__ == "__main__":
     selected_branch = select_branch(branches)
     print(f"You have selected branch: {selected_branch}")
     check_merge_conflicts(selected_branch)
-    commit_message = get_commit_message()
+    commit_message = get_commit_message(selected_branch)
     confirm_proceed()
     if perform_squash_merge(selected_branch, commit_message):
         has_remote_branch = check_and_push_branch(selected_branch)
