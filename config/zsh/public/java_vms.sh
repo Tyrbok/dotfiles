@@ -8,6 +8,7 @@ export JAVA_13_HOME=$(/usr/libexec/java_home -v13)
 export JAVA_16_HOME=$(/usr/libexec/java_home -v16)
 export JAVA_17_HOME=$(/usr/libexec/java_home -v17)
 export JAVA_18_HOME=$(/usr/libexec/java_home -v18)
+export JAVA_21_HOME=$(/usr/libexec/java_home -v21)
 
 export JAVA_AS_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 
@@ -21,6 +22,7 @@ alias java16='export JAVA_HOME=$JAVA_16_HOME'
 alias java17='export JAVA_HOME=$JAVA_17_HOME'
 alias javaas='export JAVA_HOME=$JAVA_AS_HOME'
 alias java18='export JAVA_HOME=$JAVA_18_HOME'
+alias java21='export JAVA_HOME=$JAVA_21_HOME'
 
 # default to Java Android Studio
-java13
+java21

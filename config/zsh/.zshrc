@@ -193,6 +193,7 @@ export PATH="$PATH:/Users/jesus/.cache/lm-studio/bin"
 
 
 export ANDROID_SDK_ROOT=$HOME/Library/Android/sdk
+
 export PATH=$PATH:$ANDROID_SDK_ROOT/emulator
 export PATH=$PATH:$ANDROID_SDK_ROOT/tools
 export PATH=$PATH:$ANDROID_SDK_ROOT/tools/bin
@@ -200,7 +201,11 @@ export PATH=$PATH:$ANDROID_SDK_ROOT/platform-tools
 export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin
 export PATH=$PATH:$ANDROID_SDK_ROOT/build-tools/35.0.0
 
+export PATH="/opt/homebrew/opt/mysql-client/bin:$PATH"
 
+export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
+
+export ANDROID_NDK_HOME=$HOME/Library/Android/sdk/ndk/27.0.12077973
 
 # The following lines have been added by Docker Desktop to enable Docker CLI completions.
 fpath=(/Users/jesus/.docker/completions $fpath)
@@ -215,3 +220,9 @@ if command -v ngrok &>/dev/null; then
 fi
 
 [[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/jesus/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/jesus/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/Users/jesus/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/jesus/google-cloud-sdk/completion.zsh.inc'; fi
