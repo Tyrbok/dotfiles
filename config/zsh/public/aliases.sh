@@ -89,3 +89,9 @@ dl() {
     fi
   fi
 }
+
+alias nv='nvim'
+alias wwg='cd $(git worktree list | fzf | cut -d" " -f1)'
+
+# Alias para Claude Code
+alias cc='claude --continue --permission-mode plan'
