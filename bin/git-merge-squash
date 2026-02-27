@@ -19,75 +19,53 @@ def install_local(package, local_dir):
 
 temp_dir = tempfile.mkdtemp()
 install_local('InquirerPy', temp_dir)
-install_local('google-genai', temp_dir)
 
 from InquirerPy import prompt
-from google import genai
-from google.genai import types
 
-def get_gemini_api_key():
-    """Read Gemini API key from ~/.llm_api_keys.json"""
+def generate_commit_message_with_opencode(diff_content):
+    """Generate commit message using OpenCode"""
     try:
-        config_path = os.path.expanduser("~/.llm_api_keys.json")
-        with open(config_path, 'r') as f:
-            config = json.load(f)
-        return config['providers']['gemini']['api_key']
-    except Exception as e:
-        print(f"Error reading API key: {e}")
-        return None
+        # Create a temporary file for the diff
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.diff', delete=False) as temp_diff:
+            temp_diff.write(diff_content)
+            temp_diff_path = temp_diff.name
 
-def generate_commit_message_with_gemini(diff_content):
-    """Generate commit message using Gemini API"""
-    api_key = get_gemini_api_key()
-    if not api_key:
-        return None
-
-    try:
-        client = genai.Client(api_key=api_key)
-        model = "gemini-2.0-flash-lite"
-
-        prompt_text = f"""Based on this git diff, generate a concise and descriptive commit message following conventional commit format:
-
-{diff_content}
-
-Rules:
-- Use conventional commits format: type(scope): description
-- Keep it under 50 characters for the subject line
-- Types: feat, fix, docs, style, refactor, test, chore
-- Be specific about what changed
-- Use imperative mood (e.g., "add", "fix", "update")
-
-Generate only the commit message, nothing else."""
-
-        contents = [
-            types.Content(
-                role="user",
-                parts=[
-                    types.Part.from_text(text=prompt_text),
-                ],
-            ),
-        ]
-
-        config = types.GenerateContentConfig()
-
-        response = client.models.generate_content(
-            model=model,
-            contents=contents,
-            config=config,
+        prompt_text = (
+            "Basándote en el archivo de diff adjunto, genera un mensaje de commit "
+            "siguiendo el formato de Conventional Commits (type(scope): description). "
+            "Responde ÚNICAMENTE con el mensaje de commit, sin explicaciones adicionales."
         )
 
-        if response and response.text:
-            return response.text.strip()
+        # Run opencode run with the attached file
+        result = subprocess.run(
+            ['opencode', 'run', prompt_text, '--file', temp_diff_path],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+
+        # Cleanup: remove temporary file
+        if os.path.exists(temp_diff_path):
+            os.remove(temp_diff_path)
+
+        if result.returncode == 0:
+            return result.stdout.strip()
         else:
+            print(f"Error executing OpenCode: {result.stderr}")
             return None
 
     except Exception as e:
-        print(f"Error calling Gemini API: {e}")
+        print(f"Error calling OpenCode: {e}")
         return None
 
 def check_git_repo():
-    if not os.path.isdir('.git'):
-        print("Error: You are not in a Git repository.")
+    try:
+        result = subprocess.run(['git', 'rev-parse', '--is-inside-work-tree'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if result.returncode != 0:
+            print("Error: You are not in a Git repository.")
+            sys.exit(1)
+    except Exception as e:
+        print(f"Error checking Git repository: {e}")
         sys.exit(1)
 
 def check_git_status():
@@ -180,9 +158,9 @@ def get_commit_message(selected_branch):
 
     print("=" * 50)
 
-    # Generate commit message with Gemini
-    print("🤖 Generating commit message with Gemini...")
-    suggested_message = generate_commit_message_with_gemini(diff_content)
+    # Generate commit message with OpenCode
+    print("🤖 Generating commit message with OpenCode...")
+    suggested_message = generate_commit_message_with_opencode(diff_content)
 
     if suggested_message:
         print(f"💡 Suggested commit message: {suggested_message}")
@@ -197,7 +175,7 @@ def get_commit_message(selected_branch):
                 sys.exit(1)
             return commit_message
     else:
-        print("⚠️  Could not generate commit message with Gemini. Please enter manually.")
+        print("⚠️  Could not generate commit message with OpenCode. Please enter manually.")
         print("Enter the commit message. End input with Ctrl+D:")
         commit_message = sys.stdin.read().strip()
         if not commit_message:
