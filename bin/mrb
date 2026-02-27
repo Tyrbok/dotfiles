@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+# Required parameters:
+# @raycast.schemaVersion 1
+# @raycast.title Metal Releases Browser
+# @raycast.mode silent
+
+# Optional parameters:
+# @raycast.icon 🤘
+# @raycast.packageName Custom Scripts
+
+set -euo pipefail
+
+cd "/Users/jesus/projects/personal/metalreleases/mr-cookie-browser"
+exec npm start
