@@ -1,3 +1,10 @@
+# OPENSPEC:START
+# OpenSpec shell completions configuration
+fpath=("/Users/jesus/.zsh/completions" $fpath)
+autoload -Uz compinit
+compinit
+# OPENSPEC:END
+
 # Start configuration added by Zim install {{{
 #
 # User configuration sourced by interactive shells
@@ -123,10 +130,10 @@ ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets)
 
 zmodload -F zsh/terminfo +p:terminfo
 # Bind ^[[A/^[[B manually so up/down works both before and after zle-line-init
-for key ('^[[A' '^P' ${terminfo[kcuu1]}) bindkey ${key} history-substring-search-up
-for key ('^[[B' '^N' ${terminfo[kcud1]}) bindkey ${key} history-substring-search-down
-for key ('k') bindkey -M vicmd ${key} history-substring-search-up
-for key ('j') bindkey -M vicmd ${key} history-substring-search-down
+# for key ('^[[A' '^P' ${terminfo[kcuu1]}) bindkey ${key} history-substring-search-up
+# for key ('^[[B' '^N' ${terminfo[kcud1]}) bindkey ${key} history-substring-search-down
+# for key ('k') bindkey -M vicmd ${key} history-substring-search-up
+# for key ('j') bindkey -M vicmd ${key} history-substring-search-down
 unset key
 # }}} End configuration added by Zim install
 
@@ -231,3 +238,5 @@ if [ -f '/Users/jesus/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/jes
 export PATH="/Users/jesus/.antigravity/antigravity/bin:$PATH"
 
 fpath+=~/.zfunc; autoload -Uz compinit; compinit
+
+export ENABLE_LSP_TOOL=1

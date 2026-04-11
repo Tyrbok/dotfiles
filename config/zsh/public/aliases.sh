@@ -93,5 +93,12 @@ dl() {
 alias nv='nvim'
 alias wwg='cd $(git worktree list | fzf | cut -d" " -f1)'
 
-# Alias para Claude Code
-alias cc='claude --continue --permission-mode plan'
+# Claude Code
+cc() {
+  local args=(--permission-mode plan --model claude-opus-4-20250514 "$@")
+  if [ -d ".claude" ] || [ -f ".claude/conversation.json" ]; then
+    claude --continue "${args[@]}"
+  else
+    claude "${args[@]}"
+  fi
+}
