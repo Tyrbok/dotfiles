@@ -11,6 +11,14 @@ if ! command -v fzf &> /dev/null; then
   exit 1
 fi
 
+# Load per-worktree port and project overrides if the project publishes them
+if [[ -f _ports.env ]]; then
+  set -a
+  source ./_ports.env
+  set +a
+  echo "🔌 Loaded _ports.env (project: ${COMPOSE_PROJECT_NAME:-default})"
+fi
+
 # Check if a compose file is provided via -f argument
 while getopts "f:" opt; do
   case $opt in
@@ -89,6 +97,7 @@ echo
 echo "🔧 Commands executed: "
 echo "   docker compose -f \"$compose_file\" build --no-cache \"$elected_service\""
 echo "   docker compose -f \"$compose_file\" up \"$elected_service\" -d"
+echo "   project: ${COMPOSE_PROJECT_NAME:-<compose default>}"
 
 echo
 # Display a message after starting the selected service
